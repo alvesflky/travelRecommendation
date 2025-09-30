@@ -76,7 +76,13 @@
     justify-self: end;
     align-items: center;
   }
-  
+
+  nav .fly {
+    width: 40px;
+    height: 40px;
+    align-items: left;
+  }
+
   .actionBtn {
     border-radius: 0 4px 4px 0;
     margin: 20px;
