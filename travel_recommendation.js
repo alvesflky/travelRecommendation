@@ -1,116 +1,72 @@
-const searchInput = document.getElementById("search_input");
-const searchBtn = document.getElementById("search_btn");
-const resetBtn = document.getElementById("reset_btn");
-const displayCity = document.getElementById("displayCity");
+function thankyou(){
+    alert('Thank you for contacting us!')
+}
 
-let searchQuery = "";
-let keyword = [
-  ["countries", "country"],
-  ["cities", "city"],
-  ["temples", "temple"],
-  ["beaches", "beach"],
-];
-
-let keywordSearch = (word) => {
-  keyword.forEach((wordArray) => {
-    if (wordArray.includes(word)) {
-      console.log(wordArray[0], "c");
-      searchQuery = wordArray[0];
-      return;
-    }
-  });
-};
-
-let createTravelCard = (city) => {
-  let travelCard = document.createElement("div");
-  travelCard.classList.add("travel-card");
-  displayCity.classList.add("show");
-  displayCity.appendChild(travelCard);
-  let cardImage = document.createElement("img");
-  cardImage.classList.add("card-image");
-  cardImage.setAttribute("src", `${city.imageUrl}`);
-  travelCard.appendChild(cardImage);
-  let cardContent = document.createElement("div");
-  cardContent.classList.add("card-content");
-  travelCard.appendChild(cardContent);
-  let countryName = document.createElement("p");
-  countryName.classList.add("country-name");
-  countryName.innerText = "Name";
-  cardContent.appendChild(countryName);
-  let cityName = document.createElement("p");
-  cityName.classList.add("city-name");
-  cityName.innerText = `${city.name}`;
-  cardContent.appendChild(cityName);
-  let description = document.createElement("p");
-  description.classList.add("description");
-  description.innerText = `${city.description}`;
-  cardContent.appendChild(description);
-};
-
-const fetchAllData = async (searchQuery = "none", filter) => {
-  let foundData = [];
-  if (searchQuery === "none") {
-    return;
-  }
-
-  const dataResponse = await fetch("./travel_recommendation_api.json");
-  const data = await dataResponse.json();
-  foundData = data;
-
-  if (filter) {
-    return () => {
-      return filter(foundData, searchQuery);
-    };
-  } else {
-    return foundData;
-  }
-};
-
-searchInput.addEventListener("change", (e) => {
-  e.preventDefault();
-  keywordSearch(e.target.value.trim());
-  console.log(searchQuery, "ggfdsfggfds");
-  ``;
+document.getElementById('btnReset').addEventListener('click', function() {
+    document.getElementById('results').innerHTML = '';
 });
 
-let resetDisplayCity = () => {
-  displayCity.classList.remove("show");
-  displayCity.innerHTML = "";
-  searchInput.value = "";
-};
 
-searchBtn.addEventListener("click", async (e) => {
-  e.preventDefault();
-  resetDisplayCity();
-  console.log(searchQuery, "searchQuery");
-  fetchAllData(searchQuery, filterData).then((data) => {
-    let getData = data();
-    if (searchQuery === "countries") {
-      getData.forEach((element) => {
-        element.cities.forEach((city) => {
-          createTravelCard(city);
+
+let data;
+
+fetch('travel_recommendation_api.json')
+    .then(response => response.json())
+    .then(jsonData => {
+        data = jsonData;
+        console.log(data)
+    })
+    .catch(error => console.error('Error fetching data:', error));
+
+document.getElementById('btnSearch').addEventListener('click', function() {
+    const input = document.getElementById('conditionInput').value.toLowerCase();
+    
+    let results = [];
+
+    if (!data) {
+        console.error('Data not yet fetched');
+        return;
+    }
+
+    if(input == "beach" || input == "beaches"){
+        data.beaches.forEach(beach => {
+            results.push(beach)
         });
-      });
-    } else {
-      getData.forEach((element) => {
-        createTravelCard(element);
-      });
+    }else if(input == "temples" || input == "temple"){
+        data.temples.forEach(temple => {
+            results.push(temple);
+        });
+    }else if(input == "country" || input == "countries"){
+        data.countries.forEach(country => {
+            country.cities.forEach(city => {
+                results.push(city);
+            });
+        });
     }
-  });
+
+    console.log(results)
+    displayResults(results);
 });
 
-resetBtn.addEventListener("click", (e) => {
-  e.preventDefault();
-  resetDisplayCity();
-  searchQuery = "";
-});
 
-let filterData = (data, search) => {
-  return data[search.toLowerCase()];
-};
+function displayResults(results) {
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '';
 
-document.addEventListener("DOMContentLoaded", () => {
-  alert(
-    "the search input is not completely functional, you can only search for country, temple and beach. Will I improve it later I do not knkow. This website is just a simple project to pass my course.",
-  );
-});
+    if (results.length === 0) {
+        resultsDiv.innerHTML = 'No results found.';
+        return;
+    }
+
+    results.forEach(result => {
+        const item = document.createElement('div');
+        item.classList.add('result-item');
+        item.innerHTML = `
+            <h2>${result.name}</h2>
+            <img src="${result.imageUrl}" alt="${result.name}" width=300px height=300px>
+            <p>${result.description}</p>
+            <a href=\"${result.imageUrl}\"><button>Visit</button></a>
+        `;
+        resultsDiv.appendChild(item);
+    });
+}
